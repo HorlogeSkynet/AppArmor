@@ -1,0 +1,6 @@
+{
+	"cmd": ["/sbin/apparmor_parser", "-o", "/dev/null", "-K", "$file"],
+	"selector": "source.apparmor",
+	"file_regex": "^AppArmor parser error for .* in (.*) at line (\\d+)(?: column (\\d+))?: (.*)$",
+	"quiet": true
+}

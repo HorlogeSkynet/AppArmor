@@ -1,0 +1,932 @@
+%YAML 1.2
+---
+
+# AppArmor syntax definition for Sublime Text 3+ (>= 3092).
+
+name: AppArmor
+
+# AppArmor profile do not have a proper file extension.
+# We thus try to match these ones in a "best effort" way.
+file_extensions:
+  - abstraction
+  - apparmor-profile
+  - apparmor.profile
+
+# AppArmor profile do not have a proper shebang.
+# We thus try to match as first line :
+#   * an `abi` statement ;
+#   * `include` statements ;
+#   * `#include` statements (deprecated) ;
+#   * a shebang with `apparmor_parser` ;
+#   * a comment line containing the word "apparmor" (case-insensitive).
+first_line_match: |-
+  (?x)
+  (?:^
+    (?:abi\s+<abi\/[[:digit:]]+\.[[:digit:]]+>\s*,)|
+    (?:\#?include\s+<[[:alnum:]_\/]+>)|
+    (?:\#?include\s+"[[:alnum:]_\/]+")|
+    (?:\#![ \t]*(?:\/usr(?:\/local)?)?\/s?bin\/apparmor_parser\b)|
+    (?:\#.*\b[aA][pP]{2}[aA][rR][mM][oO][rR]\b)
+  )
+
+scope: source.apparmor
+hidden: false
+
+
+variables:
+  identifier: (?:[[:alpha:]_][[:alnum:]_]*)
+  capture_var_exp: (@)({)({{identifier}})(})
+
+  profile_flags: |-
+    (?x)
+    \b(?:
+      enforce|complain|kill|unconfined|
+      audit|(?:chroot|namespace)_relative|(?:delegate|mediate)_deleted|
+      (?:no_)?attach_disconnected|chroot_(?:no_)?attach
+    )\b
+
+  rule_qualifiers: \b(?:audit|deny|quiet|(?:no)?kill|owner)\b
+
+  dbus_accesses: \b(send|receive|bind|eavesdrop)\b
+  file_access_modes: |-
+    (?x)
+    \b(?:
+      (?:[RrWwaLlMmkXx])|
+      (?:(?:[Pp]|[Cc])[Xx])|(?:(?:[Pp]|[Cc])?(?:[IiUu])[Xx])
+    )+\b
+  ptrace_accesses: \b(?:rw?|w|read(?:by)?|trace(?:dby)?)\b
+  signal_accesses: \b(?:rw?|w|read|write|send|receive)\b
+  unix_accesses: |-
+    (?x)
+    \b(?:
+      rw?|w|
+      send|receive|
+      create|bind|listen|accept|connect|shutdown|
+      [gs]et(?:attr|opt)|
+    )\b
+
+  capabilities: |-
+    (?x)
+    \b(?:
+      audit_(?:control|read|write)|block_suspend|bpf|checkpoint_restore|chown|
+      dac_(?:override|read_search)|fowner|fsetid|ipc_(?:lock|owner)|kill|lease|linux_immutable|
+      mac_(?:admin|override)|mknod|net_bind_service|net_(?:admin|broadcast|raw)|perfmon|
+      set(?:fcap|[gu]id|pcap)|syslog|
+      sys_(?:admin|boot|chroot|module|nice|pacct|ptrace|rawio|resource|time|tty_config)|
+      wake_alarm
+    )\b
+
+  mount_flags: |-
+    (?x)
+    \b(?:
+      ro|rw|
+      (?:no)?(?:suid|dev|exec|mand|acl|user|i?version)|
+      (?:no)?(?:dir|rel)?atime|
+      a?sync|remount|dirsync|move|verbose|silent|loud|
+      r?(?:bind|unbindable|private|slave|shared)|
+      strictatime|
+    )\b
+
+  network_domains: |-
+    (?x)
+    \b(?:
+      inet6?|unix|netlink|packet|
+      alg|appletalk|ash|atm[ps]vc|ax25|bluetooth|bridge|caif|can|econet|ib|ieee802154|ipx|irda|
+      isdn|iucv|key|llc|mpls|netbeui|netrom|nfc|phonet|pppox|rds|rose|rxrpc|security|sna|tipc|
+      vsock|wanpipe|x25
+    )\b
+  network_types: \b(?:stream|dgram|raw|rdm|(?:seq)?packet|dccp)\b
+  network_protocols: \b(tcp|udp|icmp)\b
+
+  rlimits: |-
+    (?x)
+    \b(?:
+      cpu|fsize|data|stack|core|rss|n?ofile|as|nproc|memlock|locks|sigpending|msgqueue|nice|
+      rt(?:prio|time)
+    )\b
+  # We omit left word-boundary on purpose here as time suffixes can be next to values.
+  rlimit_time_suffixes: |-
+    (?x)
+    (?:
+      [um]s|(?:micro|milli)seconds?|
+      s(?:ec(?:onds?)?)?|
+      min(?:utes?)?|
+      h(?:ours?)?|
+      d(?:ays?)?|
+      weeks?
+    )\b
+
+  signals: |-
+    (?x)
+    \b(?:
+      hup|int|quit|ill|trap|abrt|bus|fpe|kill|usr[12]|segv|pipe|alrm|term|stkflt|chld|cont|sto?p|
+      tt(?:in|ou)|urg|xcpu|xfsz|vtalrm|prof|winch|io|pwr|sys|emt|exists|rtmin\+\d{1,2}
+    )\b
+
+
+contexts:
+  main:
+    - include: preamble
+    - include: profile
+
+  prototype:
+    - include: comments
+
+  comments:
+    # The negative look-ahead is required while we support deprecated "pound-include" statement.
+    # See `includes`.
+    - match: (#)(?!include\b)
+      scope: punctuation.definition.comment.apparmor
+      push:
+        - meta_include_prototype: false
+        - meta_scope: comment.line.apparmor
+
+        - match: (?=$)
+          pop: true
+
+  line-continuation:
+    - match: (?:(\\)(.*)$\r?\n)
+      captures:
+        1: punctuation.separator.continuation.apparmor
+        2: invalid.illegal.trailing-character.apparmor
+
+  variables:
+    - match: (?:{{capture_var_exp}})
+      captures:
+        1: punctuation.definition.variable.apparmor
+        2: punctuation.section.interpolation.begin.apparmor
+        3: variable.other.readwrite.apparmor
+        4: punctuation.section.interpolation.end.apparmor
+
+  new-line:
+    - match: (?:$\r?\n)
+      pop: true
+
+  force-pop:
+    - match: ()
+      pop: true
+
+  bail-out-on-comma:
+    - match: (?=,)
+      pop: true
+
+  bail-out-on-parens-end:
+    - match: (?=\))
+      pop: true
+
+  bail-out-on-whitespace:
+    - match: (?=\s)
+      pop: true
+
+  comma:
+    - match: (,)
+      scope: punctuation.separator.comma.apparmor
+  _expect-comma:
+    - match: (,)
+      scope: punctuation.separator.comma.apparmor
+      pop: true
+
+  _expect-profile-name:
+    - match: (?:{{capture_var_exp}}|({{identifier}}))+
+      captures:
+        1: punctuation.definition.variable.apparmor
+        2: punctuation.section.interpolation.begin.apparmor
+        3: variable.other.readwrite.apparmor
+        4: punctuation.section.interpolation.end.apparmor
+        5: entity.name.profile.apparmor
+      pop: true
+
+  quoted-string:
+    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
+    - match: (")
+      scope: punctuation.definition.string.begin.apparmor
+      with_prototype:
+        - match: (\\.)
+          scope: constant.character.escape.apparmor
+        - include: line-continuation
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.double.apparmor meta.string.apparmor
+
+        - match: (")
+          scope: punctuation.definition.string.end.apparmor
+          pop: true
+  _expect-quoted-string:
+    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
+    - match: (")
+      scope: punctuation.definition.string.begin.apparmor
+      with_prototype:
+        - match: (\\.)
+          scope: constant.character.escape.apparmor
+        - include: line-continuation
+      set:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.double.apparmor meta.string.apparmor
+
+        - match: (")
+          scope: punctuation.definition.string.end.apparmor
+          pop: true
+
+  file-glob:
+    # Check whether this path starts with a '/' or variable expansion.
+    # Don't consume them, yet.
+    - match: (?={{capture_var_exp}}|/)
+      push:
+        - include: bail-out-on-whitespace
+        - include: aare
+
+    - include: quoted-string
+
+  _expect-file-glob-and-comma:
+    - match: (?={{capture_var_exp}}|/)
+      set:
+        - include: bail-out-on-whitespace
+        - include: _expect-comma
+        - include: aare
+
+    - include: quoted-string
+
+  aare:
+    - include: quoted-string
+
+    - match: (?:{{capture_var_exp}})
+      captures:
+        1: punctuation.definition.variable.apparmor
+        2: punctuation.section.interpolation.begin.apparmor
+        3: variable.other.readwrite.apparmor
+        4: punctuation.section.interpolation.end.apparmor
+
+    - match: (\\.)
+      scope: string.regexp.apparmor constant.character.escape.regexp.apparmor
+
+    - match: ({)
+      scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
+      push:
+        - match: (})
+          scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
+          pop: true
+
+        - match: (,)
+          scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
+
+        - include: aare
+
+    - match: (\[)
+      scope: string.regexp.apparmor punctuation.definition.set.begin.regexp.apparmor
+      push:
+        - meta_scope: meta.set.regexp.apparmor
+
+        - match: (\])
+          scope: string.regexp.apparmor punctuation.definition.set.end.regexp.apparmor
+          pop: true
+
+        - match: (\S)(-)(\S)
+          scope: string.regexp.apparmor
+          captures:
+            1: constant.other.range.regexp.apparmor
+            2: punctuation.separator.sequence.regexp.apparmor
+            3: constant.other.range.regexp.apparmor
+
+        - include: aare
+
+    - match: ([\?\*\^\[\]\{\}])
+      scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
+
+    # Any other non-whitespace character is considered to be part of the "string".
+    - match: ([^\s\x00])
+      scope: string.regexp.apparmor
+
+  magic-path:
+    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
+    - match: (<)
+      scope: punctuation.definition.string.begin.apparmor
+      with_prototype:
+        - match: (\\.)
+          scope: constant.character.escape.apparmor
+        - include: line-continuation
+      push:
+        - meta_include_prototype: false
+        - meta_scope: string.quoted.other.lt-gt.apparmor meta.string.apparmor
+
+        - match: (>)
+          scope: punctuation.definition.string.end.apparmor
+          pop: true
+
+  includes:
+    - match: (#?)(\binclude\b)
+      captures:
+        0: meta.preprocessor.include.apparmor keyword.control.import.include.apparmor
+        1: invalid.deprecated.pound-include.apparmor
+      push:
+        - meta_scope: meta.preprocessor.include.apparmor
+
+        - match: \b(if)\s+(exists)\b
+          captures:
+            1: keyword.control.conditional.apparmor
+            2: keyword.operator.word.exists.apparmor
+
+        - include: quoted-string
+        - include: magic-path
+        - include: new-line
+
+  variable-assignment:
+    - include: variables
+
+    - match: (\+?=)
+      scope: keyword.operator.assignment.apparmor
+      push:
+        - include: new-line
+        - include: aare
+  _expect-variable-assignment:
+    - include: variables
+
+    - match: (=)
+      scope: keyword.operator.assignment.apparmor
+      set:
+        - include: new-line
+        - include: aare
+
+  preamble:
+    # ABI
+    - match: \b(abi)\b
+      scope: meta.preprocessor.abi.apparmor keyword.control.import.abi.apparmor
+      push:
+        - meta_scope: meta.preprocessor.abi.apparmor
+
+        - include: magic-path
+        - include: _expect-comma
+
+    # Alias
+    - match: \b(alias)\b
+      scope: storage.type.alias.apparmor
+      push:
+        # Absolute paths start with '/' and don't contain any space or null bytes.
+        - match: (\/[^\s\x00]+)
+          scope: string.unquoted.absolute-path.apparmor
+
+        - match: (?:(->)|\b(to)\b)
+          captures:
+            1: keyword.operator.arrow.apparmor
+            2: keyword.operator.word.to.apparmor
+          set:
+            # For this context, we expect an absolute path ending with a comma.
+            - match: (\/)
+              scope: string.unquoted.absolute-path.apparmor
+              set:
+                - include: _expect-comma
+                - match: ([^\s\x00])
+                  scope: string.unquoted.absolute-path.apparmor
+
+    - include: includes
+    - include: variable-assignment
+
+  profile:
+    - match: \b(profile)\b
+      scope: storage.type.profile.apparmor keyword.declaration.profile.apparmor
+      push: _expect-profile-name
+
+    - include: profile-flags
+    - include: profile-attachment
+    - include: profile-body
+
+  profile-attachment:
+    - match: \b(xattrs)(=)
+      captures:
+        1: entity.name.tag.profile-xattrs.apparmor
+        2: keyword.operator.assignment.apparmor
+      push:
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          set:
+            - meta_scope: meta.parens.profile-xattrs.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{identifier}})
+              scope: string.unquoted.xattrs.apparmor
+
+            - match: (\.)
+              scope: punctuation.accessor.dot.apparmor
+
+            - match: (=)
+              scope: keyword.operator.assignment.apparmor
+              push:
+                - include: bail-out-on-parens-end
+                - include: bail-out-on-whitespace
+                - include: aare
+
+    - include: file-glob
+
+  profile-flags:
+    - match: \b(flags)(=)
+      captures:
+        1: entity.name.tag.profile-flags.apparmor
+        2: keyword.operator.assignment.apparmor
+      push:
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          set:
+            - meta_scope: meta.parens.profile-flags.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{profile_flags}})
+              scope: constant.language.profile-flag.apparmor
+
+  profile-body:
+    - match: ({)
+      scope: punctuation.section.block.begin.profile.apparmor
+      push:
+        - meta_scope: meta.block.profile.apparmor
+
+        - match: (})
+          scope: punctuation.section.block.end.profile.apparmor
+          pop: true
+
+        - include: profile-body-contexts
+  _expect-profile-body:
+    - match: ({)
+      scope: punctuation.section.block.begin.profile.apparmor
+      set:
+        - meta_scope: meta.block.profile.apparmor
+
+        - match: (})
+          scope: punctuation.section.block.end.profile.apparmor
+          pop: true
+
+        - include: profile-body-contexts
+
+  profile-body-contexts:
+    - include: includes
+    - include: subprofile
+    - include: hat
+    - include: rules
+
+  subprofile:
+    - match: \b(profile)\b
+      scope: storage.type.profile.apparmor keyword.declaration.profile.apparmor
+      push: [__subprofile-head-and-body, _expect-profile-name]
+
+  __subprofile-head-and-body:
+    - include: profile-attachment
+    - include: profile-flags
+
+    - include: _expect-profile-body
+
+  hat:
+    - match: \b(hat)\b
+      scope: storage.type.hat.apparmor keyword.declaration.hat.apparmor
+      push: [__hat-head-and-body, _expect-profile-name]
+
+    - match: (\^)({{identifier}})
+      captures:
+        1: punctuation.definition.keyword.caret.apparmor
+        2: entity.name.profile.hat.apparmor
+      push:
+        - include: profile-flags
+        - include: _expect-profile-body
+
+  __hat-head-and-body:
+    - include: profile-flags
+    - include: _expect-profile-body
+
+  rules:
+    - match: ({{rule_qualifiers}})
+      scope: constant.language.rule-qualifier.apparmor
+
+    - include: capabilities
+    - include: change-profile
+    - include: dbus
+    - include: link
+    - include: mount
+    - include: network
+    - include: pivot-root
+    - include: ptrace
+    - include: rlimit
+    - include: signal
+    - include: unix
+
+    # File rules syntax is pretty permissive, so we match them at last.
+    - include: file
+
+  capabilities:
+    - match: \b(capability)\b
+      scope: entity.other.attribute-name.capability.apparmor
+      push:
+        - match: ({{capabilities}})
+          scope: constant.language.capability.apparmor
+
+        - include: _expect-comma
+
+  change-profile:
+    - match: \b(change_profile)\b
+      scope: entity.other.attribute-name.change-profile.apparmor
+      push:
+        - match: \b((?:un)?safe)\b
+          scope: constant.language.change-profile-exec-mode.apparmor
+
+        - match: (->)
+          scope: keyword.operator.arrow.apparmor
+          set:
+            - include: _expect-comma
+            - include: aare
+
+        - include: _expect-comma
+        - include: aare
+
+  dbus:
+    - match: \b(dbus)\b
+      scope: entity.other.attribute-name.dbus.apparmor
+      push:
+        - match: ({{dbus_accesses}})
+          scope: constant.language.dbus-access.apparmor
+
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          push:
+            - meta_scope: meta.parens.dbus-accesses.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{dbus_accesses}})
+              scope: constant.language.dbus-access.apparmor
+
+            - include: comma
+
+        - include: __dbus-conds
+
+        - match: \b(peer)(=)
+          captures:
+            1: entity.name.tag.dbus-peer-cond.apparmor
+            2: keyword.operator.assignment.apparmor
+          push:
+            - match: (\()
+              scope: punctuation.section.parens.begin
+              set:
+                - meta_scope: meta.parens.dbus-peer-conds.apparmor
+
+                - match: (\))
+                  scope: punctuation.section.parens.end
+                  pop: true
+
+                - include: __dbus-conds
+                - include: comma
+
+        - match: \b(bus)(=)
+          captures:
+            1: entity.name.tag.dbus-bus.apparmor
+            2: keyword.operator.assignment.apparmor
+          push:
+            - match: \b(system|session)\b
+              scope: constant.language.dbus-bus.apparmor
+              pop: true
+
+            - include: bail-out-on-whitespace
+            - include: aare
+
+        - include: _expect-comma
+
+  __dbus-conds:
+    - match: \b(path|interface|member|name|label)(=)
+      captures:
+        1: entity.name.tag.dbus-cond.apparmor
+        2: keyword.operator.assignment.apparmor
+      push:
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          set:
+            - meta_scope: meta.parens.dbus-conds.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - include: aare
+
+        - include: bail-out-on-comma
+        - include: bail-out-on-whitespace
+        - include: aare
+
+  link:
+    - match: \b(link)\b
+      scope: entity.other.attribute-name.link.apparmor
+      push:
+        - match: \b(subset)\b
+          scope: entity.name.tag.link-subset.apparmor
+
+        - match: (->)
+          scope: keyword.operator.arrow.apparmor
+          set: _expect-file-glob-and-comma
+
+        - include: file-glob
+
+  mount:
+    - match: \b((?:re|u)?mount)\b
+      scope: entity.other.attribute-name.mount.apparmor
+      push:
+        - match: \b(options)(?:(=)|\s+(in)\b)
+          captures:
+            1: entity.name.tag.mount-options.apparmor
+            2: keyword.operator.assignment.apparmor
+            3: keyword.operator.word.in.apparmor
+          push:
+            - match: (\()
+              scope: punctuation.section.parens.begin
+              set:
+                - meta_scope: meta.parens.mount-flags.apparmor
+
+                - match: (\))
+                  scope: punctuation.section.parens.end
+                  pop: true
+
+                - match: ({{mount_flags}})
+                  scope: constant.language.mount-flag.apparmor
+
+                - include: comma
+
+            - match: ({{mount_flags}})
+              scope: constant.language.mount-flag.apparmor
+              pop: true
+
+        - match: \b(v?fstype)(?:(=)|\s+(in)\b)
+          captures:
+            1: entity.name.tag.mount-fstype.apparmor
+            2: keyword.operator.assignment.apparmor
+            3: keyword.operator.word.in.apparmor
+          push:
+            - include: bail-out-on-whitespace
+            - include: aare
+
+        - match: (->)
+          scope: keyword.operator.arrow.apparmor
+          set: _expect-file-glob-and-comma
+
+        - include: file-glob
+
+  network:
+    - match: \b(network)\b
+      scope: entity.other.attribute-name.network.apparmor
+      push:
+        - match: ({{network_domains}})
+          scope: constant.language.network-domain.apparmor
+          set:
+            - match: ({{network_types}})
+              scope: constant.language.network-type.apparmor
+              set: _expect-comma
+
+            - match: ({{network_protocols}})
+              scope: constant.language.network-protocol.apparmor
+              set: _expect-comma
+
+            - include: _expect-comma
+
+  pivot-root:
+    - match: \b(pivot_root)\b
+      scope: entity.other.attribute-name.pivot-root.apparmor
+      push:
+        - include: _expect-comma
+
+        - match: \b(oldroot)(=)
+          captures:
+            1: entity.name.tag.pivot-root-oldroot.apparmor
+            2: keyword.operator.assignment.apparmor
+          push:
+            - include: bail-out-on-whitespace
+            - include: aare
+
+        - match: (->)
+          scope: keyword.operator.arrow.apparmor
+          set:
+            - include: _expect-comma
+            - include: aare
+
+        - include: aare
+
+  ptrace:
+    - match: \b(ptrace)\b
+      scope: entity.other.attribute-name.ptrace.apparmor
+      push:
+        - match: ({{ptrace_accesses}})
+          scope: constant.language.ptrace-access.apparmor
+
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          push:
+            - meta_scope: meta.parens.ptrace-accesses.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{ptrace_accesses}})
+              scope: constant.language.ptrace-access.apparmor
+
+            - include: comma
+
+        - match: \b(peer)(=)
+          captures:
+            1: entity.name.tag.ptrace-peer.apparmor
+            2: keyword.operator.assignment.apparmor
+          set:
+            - include: _expect-comma
+            - include: aare
+
+        - include: _expect-comma
+
+  rlimit:
+    - match: (?:\b(set)\s+(rlimit)\b)
+      captures:
+        1: entity.other.attribute-name.rlimit.apparmor
+        2: entity.other.attribute-name.rlimit.apparmor
+      push:
+        - match: ({{rlimits}})
+          scope: constant.language.rlimit.apparmor
+          set:
+            - match: (<=)
+              scope: keyword.operator.arithmetic.apparmor
+              set:
+                - match: \b(infinity)\b
+                  scope: constant.language.infinity.apparmor
+                  set: _expect-comma
+
+                # time value
+                - match: (?:(\d+)\s*({{rlimit_time_suffixes}}))
+                  captures:
+                    1: constant.numeric.integer.decimal.apparmor
+                    2: constant.numeric.suffix.apparmor
+                  set: _expect-comma
+
+                # size value
+                - match: (?:(\d+)([KMG]B?)?\b)
+                  captures:
+                    1: constant.numeric.integer.decimal.apparmor
+                    2: constant.numeric.suffix.apparmor
+                  set: _expect-comma
+
+                # nice value
+                - match: (-)(\d{1,2})
+                  captures:
+                    1: keyword.operator.arithmetic.apparmor
+                    2: constant.numeric.integer.decimal.apparmor
+                  set: _expect-comma
+
+  signal:
+    - match: \b(signal)\b
+      scope: entity.other.attribute-name.signal.apparmor
+      push:
+        - match: ({{signal_accesses}})
+          scope: constant.language.signal-access.apparmor
+
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          push:
+            - meta_scope: meta.parens.signal-accesses.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{signal_accesses}})
+              scope: constant.language.signal-access.apparmor
+
+            - include: comma
+
+        - match: \b(set)(=)
+          captures:
+            1: entity.name.tag.signal-set.apparmor
+            2: keyword.operator.assignment.apparmor
+          push:
+            - match: (\()
+              scope: punctuation.section.parens.begin
+              set:
+                - meta_scope: meta.parens.signal-list.apparmor
+
+                - match: (\))
+                  scope: punctuation.section.parens.end
+                  pop: true
+
+                - match: ({{signals}})
+                  scope: constant.language.signal.apparmor
+
+                - include: comma
+
+        - match: \b(peer)(=)
+          captures:
+            1: entity.name.tag.signal-peer.apparmor
+            2: keyword.operator.assignment.apparmor
+          set:
+            - include: _expect-comma
+            - include: aare
+
+        - include: _expect-comma
+
+  unix:
+    - match: \b(unix)\b
+      scope: entity.other.attribute-name.unix.apparmor
+      push:
+        - match: ({{unix_accesses}})
+          scope: constant.language.unix-access.apparmor
+
+        - match: (\()
+          scope: punctuation.section.parens.begin
+          push:
+            - meta_scope: meta.parens.unix-accesses.apparmor
+
+            - match: (\))
+              scope: punctuation.section.parens.end
+              pop: true
+
+            - match: ({{unix_accesses}})
+              scope: constant.language.unix-access.apparmor
+
+            - include: comma
+
+        - match: \b(type|protocol|addr|label|attr|opt)(=)
+          captures:
+            1: entity.name.tag.unix-cond.apparmor
+            2: keyword.operator.assignment.apparmor
+          push:
+            - match: (\()
+              scope: punctuation.section.parens.begin
+              set:
+                - meta_scope: meta.parens.unix-conds.apparmor
+
+                - match: (\))
+                  scope: punctuation.section.parens.end
+                  pop: true
+
+                - include: comma
+                - include: aare
+
+            - include: bail-out-on-comma
+            - include: bail-out-on-whitespace
+
+            - include: aare
+
+        - include: _expect-comma
+
+        - match: \b(peer)(=)
+          captures:
+            1: entity.name.tag.unix-peer-cond.apparmor
+            2: keyword.operator.assignment.apparmor
+          set:
+            - include: _expect-comma
+
+            - match: (\()
+              scope: punctuation.section.parens.begin
+              push:
+                - meta_scope: meta.parens.unix-peer-conds.apparmor
+
+                - match: (\))
+                  scope: punctuation.section.parens.end
+                  pop: true
+
+                - match: \b(addr|label)(=)
+                  captures:
+                    1: entity.name.tag.unix-peer-cond.apparmor
+                    2: keyword.operator.assignment.apparmor
+                  push:
+                    - include: _expect-comma
+                    - include: bail-out-on-parens-end
+
+                    - include: aare
+
+            - match: \b(addr|label)(=)
+              captures:
+                1: entity.name.tag.unix-peer-cond.apparmor
+                2: keyword.operator.assignment.apparmor
+              set:
+                - include: _expect-comma
+                - include: aare
+
+  file:
+    - match: \b(file)\b
+      scope: entity.other.attribute-name.file.apparmor
+      push:
+        - include: __file
+        - include: force-pop
+
+    - include: __file
+
+  __file:
+    - match: ({{file_access_modes}})
+      scope: constant.language.file-access-modes.apparmor
+      push:
+        - include: __transition
+        - include: _expect-file-glob-and-comma
+
+    - include: __transition
+    - include: file-glob
+
+  __transition:
+    - include: _expect-comma
+
+    - match: (->)
+      scope: keyword.operator.arrow.apparmor
+      set: [_expect-comma, _expect-profile-name]
