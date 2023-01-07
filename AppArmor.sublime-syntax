@@ -5,14 +5,14 @@
 
 name: AppArmor
 
-# AppArmor profile do not have a proper file extension.
+# AppArmor profiles do not have a proper file extension.
 # We thus try to match these ones in a "best effort" way.
 file_extensions:
   - abstraction
   - apparmor-profile
   - apparmor.profile
 
-# AppArmor profile do not have a proper shebang.
+# AppArmor profiles do not have a proper shebang.
 # We thus try to match as first line :
 #   * an `abi` statement ;
 #   * `include` statements ;
