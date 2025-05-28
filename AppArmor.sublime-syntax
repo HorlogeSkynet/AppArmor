@@ -178,6 +178,10 @@ contexts:
     - match: (?=\s)
       pop: true
 
+  bail-out-on-non-whitespace:
+    - match: (?=\S)
+      pop: true
+
   comma:
     - match: (,)
       scope: punctuation.separator.comma.apparmor
@@ -187,14 +191,12 @@ contexts:
       pop: true
 
   _expect-profile-name:
-    - match: (?:{{capture_var_exp}}|({{identifier}}))+
-      captures:
-        1: punctuation.definition.variable.apparmor
-        2: punctuation.section.interpolation.begin.apparmor
-        3: variable.other.readwrite.apparmor
-        4: punctuation.section.interpolation.end.apparmor
-        5: entity.name.profile.apparmor
+    - match: (?:{{identifier}})
+      scope: entity.name.profile.apparmor
       pop: true
+
+    # Anonymous profile may miss a name, bail out on first character not matching `identifier`.
+    - include: bail-out-on-non-whitespace
 
   quoted-string:
     # `prototype` won't be propagated, but `line-continuation` has to be consumed.

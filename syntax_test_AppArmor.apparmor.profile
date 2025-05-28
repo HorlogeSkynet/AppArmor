@@ -365,6 +365,12 @@ profile firefox @{exec_path} xattrs=(
 	}
 	# <- punctuation.section.block.end.profile.apparmor
 
+	profile /bin/sh {}
+	# <- storage.type.profile.apparmor keyword.declaration.profile.apparmor
+	#       ^^^^^^^ string.regexp.apparmor
+	#               ^ punctuation.section.block.begin.profile.apparmor
+	#                ^ punctuation.section.block.end.profile.apparmor
+
 	^foo flags=(complain) {
 	# <- punctuation.definition.keyword.caret.apparmor
 	# ^ entity.name.profile.hat.apparmor
