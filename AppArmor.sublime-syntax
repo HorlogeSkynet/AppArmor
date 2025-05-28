@@ -251,12 +251,7 @@ contexts:
   aare:
     - include: quoted-string
 
-    - match: (?:{{capture_var_exp}})
-      captures:
-        1: punctuation.definition.variable.apparmor
-        2: punctuation.section.interpolation.begin.apparmor
-        3: variable.other.readwrite.apparmor
-        4: punctuation.section.interpolation.end.apparmor
+    - include: variables
 
     - match: (\\.)
       scope: string.regexp.apparmor constant.character.escape.regexp.apparmor
