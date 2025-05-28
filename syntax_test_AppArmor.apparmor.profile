@@ -175,7 +175,11 @@ profile profile_N4m3 @{exec_path} flags=(attach_disconnected) {
 	#                               ^ string.regexp.apparmor
 	#                                               ^^ keyword.operator.arrow.apparmor
 	#                                                              ^ punctuation.separator.comma.apparmor
+	umount,
+	# <- entity.other.attribute-name.mount.apparmor
 
+	network,
+	# <- entity.other.attribute-name.network.apparmor
 	network inet dgram,
 	# <- entity.other.attribute-name.network.apparmor
 	#       ^ constant.language.network-domain.apparmor

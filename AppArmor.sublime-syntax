@@ -670,6 +670,7 @@ contexts:
           set: _expect-file-glob-and-comma
 
         - include: file-glob
+        - include: _expect-comma
 
   network:
     - match: \b(network)\b
@@ -687,6 +688,8 @@ contexts:
               set: _expect-comma
 
             - include: _expect-comma
+
+        - include: _expect-comma
 
   pivot-root:
     - match: \b(pivot_root)\b

@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Fixed
+- Permissive `mount` and `network` directives
 - Unmatched anonymous profiles exec paths
 
 ## [v0.1.1] - 2022-10-27
