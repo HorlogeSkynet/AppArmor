@@ -15,13 +15,14 @@ include <tunables/global>
 # <- keyword.control.import.include.apparmor
 # ^^^^^^^^^^^^^^^^^^^^^^^ meta.preprocessor.include.apparmor
 #       ^^^^^^^^^^^^^^^^^ string.quoted.other.lt-gt.apparmor
+include <tunables/home>
 
-#include "incredible s\tring"
+#include if exists "incredible s\tring"
 # <- invalid.deprecated.pound-include.apparmor
-#        ^^^^^^^^^^^^^^^^^^^^ string.quoted.double.apparmor meta.string.apparmor
-#        ^ punctuation.definition.string.begin.apparmor
-#                     ^^ constant.character.escape.apparmor
-#                           ^ punctuation.definition.string.end.apparmor
+#                  ^^^^^^^^^^^^^^^^^^^^ string.quoted.double.apparmor meta.string.apparmor
+#                  ^ punctuation.definition.string.begin.apparmor
+#                               ^^ constant.character.escape.apparmor
+#                                     ^ punctuation.definition.string.end.apparmor
 
 @{exec_path} = /such/a/path /another[0-9]_*/{,one}
 # <- punctuation.definition.variable.apparmor
@@ -41,6 +42,8 @@ include <tunables/global>
 #                                           ^ keyword.operator.quantifier.regexp.apparmor
 #                                            ^ keyword.operator.quantifier.regexp.apparmor
 #                                                ^ keyword.operator.quantifier.regexp.apparmor
+
+@{root} = /nonexistent
 
 @{uuid} = f3f3a904-bdcc-481b-be30-ccc751c4922c
 #         ^ string.regexp.apparmor
@@ -160,15 +163,15 @@ profile profile_N4m3 @{exec_path} flags=(attach_disconnected) {
 	#                         ^^ keyword.operator.arrow.apparmor
 	#                            ^ string.regexp.apparmor
 	#                                 ^ punctuation.separator.comma.apparmor
-	mount fstype={btrfs,ext*,vfat,ntfs3} /dev/{sv}d[a-z]*[0-9]* -> @{MOUNTS}/*/,
+	mount fstype={btrfs,ext*,vfat,ntfs3} /dev/{s,v}d[a-z]*[0-9]* -> @{HOME}/*/,
 	#     ^ entity.name.tag.mount-fstype.apparmor
 	#           ^ keyword.operator.assignment.apparmor
 	#            ^ string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
 	#                                    ^ string.regexp.apparmor
-	#                                                   ^ keyword.operator.quantifier.regexp.apparmor
-	#                                                           ^^ keyword.operator.arrow.apparmor
-	#                                                              ^ punctuation.definition.variable.apparmor
-	#                                                                          ^ punctuation.separator.comma.apparmor
+	#                                                    ^ keyword.operator.quantifier.regexp.apparmor
+	#                                                            ^^ keyword.operator.arrow.apparmor
+	#                                                               ^ punctuation.definition.variable.apparmor
+	#                                                                         ^ punctuation.separator.comma.apparmor
 	mount options=(rw,atime) fstype=fuse.obexautofs -> @{HOME}/*/*/,
 	#             ^ punctuation.section.parens.begin
 	#              ^ constant.language.mount-flag.apparmor
