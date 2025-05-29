@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profile concatenation stacking in regular expressions (`...//&profile`)
 ### Fixed
 - Build command error parsing
+- `file` rule with a file glob "exec target"
 - Profile/Hat names containing `-` separator
 - Permissive `mount` and `network` directives
 - Regular expressions containing anonymous inodes

@@ -37,6 +37,8 @@ hidden: false
 variables:
   identifier: (?:[[:alpha:]-_][[:alnum:]-_]*)
   capture_var_exp: (@)({)([[:alpha:]_][[:alnum:]_]*)(})
+  # "must start with '/' (after variable expansion)", only used for tests (no consumption)
+  file_glob_cue_check: (?=(?:{{capture_var_exp}})?/)
 
   profile_flags: |-
     (?x)
@@ -235,20 +237,18 @@ contexts:
           pop: true
 
   file-glob:
-    # Check whether this path starts with a '/' or variable expansion.
-    # Don't consume them, yet.
-    - match: (?={{capture_var_exp}}|/)
+    - match: (?:{{file_glob_cue_check}})
       push:
+        - include: bail-out-on-comma
         - include: bail-out-on-whitespace
         - include: aare
 
     - include: quoted-string
-
-  _expect-file-glob-and-comma:
-    - match: (?={{capture_var_exp}}|/)
+  _expect-file-glob:
+    - match: (?:{{file_glob_cue_check}})
       set:
+        - include: bail-out-on-comma
         - include: bail-out-on-whitespace
-        - include: _expect-comma
         - include: aare
 
     - include: quoted-string
@@ -299,7 +299,7 @@ contexts:
       push: _expect-profile-name
 
     # Any other non-whitespace character is considered to be part of the "string".
-    - match: ([^\s\x00])
+    - match: ([^,\s\x00])
       scope: string.regexp.apparmor
       with_prototype:
         - include: prototype_for_strings
@@ -637,7 +637,7 @@ contexts:
 
         - match: (->)
           scope: keyword.operator.arrow.apparmor
-          set: _expect-file-glob-and-comma
+          set: [_expect-comma, _expect-file-glob]
 
         - include: file-glob
 
@@ -680,7 +680,7 @@ contexts:
 
         - match: (->)
           scope: keyword.operator.arrow.apparmor
-          set: _expect-file-glob-and-comma
+          set: [_expect-comma, _expect-file-glob]
 
         - include: file-glob
         - include: _expect-comma
@@ -889,7 +889,6 @@ contexts:
 
             - include: bail-out-on-comma
             - include: bail-out-on-whitespace
-
             - include: aare
 
         - include: _expect-comma
@@ -931,25 +930,34 @@ contexts:
   file:
     - match: \b(file)\b
       scope: entity.other.attribute-name.file.apparmor
-      push:
-        - include: __file
-        - include: force-pop
+      push: [_expect-file-rule]
 
-    - include: __file
+    - include: file-rule
 
-  __file:
+  file-rule:
+    - match: (?={{file_access_modes}})
+      push: [_expect-comma, _opt-exec-target, _expect-file-glob, _expect-file-access-modes]
+
+    - match: (?:{{file_glob_cue_check}})
+      push: [_expect-comma, _opt-exec-target, _expect-file-access-modes, _expect-file-glob]
+  _expect-file-rule:
+    - match: (?={{file_access_modes}})
+      set: [_expect-comma, _opt-exec-target, _expect-file-glob, _expect-file-access-modes]
+
+    - match: (?:{{file_glob_cue_check}})
+      set: [_expect-comma, _opt-exec-target, _expect-file-access-modes, _expect-file-glob]
+
+  _expect-file-access-modes:
     - match: ({{file_access_modes}})
       scope: constant.language.file-access-modes.apparmor
-      push:
-        - include: __transition
-        - include: _expect-file-glob-and-comma
+      pop: true
 
-    - include: __transition
-    - include: file-glob
-
-  __transition:
-    - include: _expect-comma
-
+  _opt-exec-target:
     - match: (->)
       scope: keyword.operator.arrow.apparmor
-      set: [_expect-comma, _expect-profile-name]
+      set:
+        - include: _expect-file-glob
+        - include: _expect-profile-name
+
+    # "Exec target" is fully optional, bail out on comma (which is consumed by next stack context).
+    - include: bail-out-on-comma

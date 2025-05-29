@@ -383,6 +383,18 @@ profile firefox @{exec_path} xattrs=(
 	#                                ^ punctuation.separator.comma.apparmor
 	owner @{HOME}/.config/#[0-9]* rw,
 	#                     ^^^^^^^ string.regexp.apparmor
+	owner @{HOME}/.config/kdeglobals.?????? rwl -> @{HOME}/.config/#[0-9]*,
+	#                                              ^ punctuation.definition.variable.apparmor
+	#                                                     ^^^^^^^^^^^^^^^^ string.regexp.apparmor
+	#                                                                     ^ punctuation.separator.comma.apparmor
+	audit file /nonexistent wl -> @{root}/var/run/*,
+	# <- constant.language.rule-qualifier.apparmor
+	#     ^ entity.other.attribute-name.file.apparmor
+	#          ^ string.regexp.apparmor
+	#                       ^ constant.language.file-access-modes.apparmor
+	#                          ^^ keyword.operator.arrow.apparmor
+	#                             ^ punctuation.definition.variable.apparmor
+	#                                              ^ punctuation.separator.comma.apparmor
 }
 
 /usr/bin/foo {
