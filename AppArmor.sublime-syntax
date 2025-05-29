@@ -818,6 +818,7 @@ contexts:
                 - match: ({{signals}})
                   scope: constant.language.signal.apparmor
 
+                - include: quoted-string
                 - include: comma
 
         - match: \b(peer)(=)

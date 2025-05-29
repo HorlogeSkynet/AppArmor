@@ -276,6 +276,10 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#                                                 ^ string.regexp.apparmor
 	#                                                    ^ keyword.operator.quantifier.regexp.apparmor
 	#                                                     ^ punctuation.separator.comma.apparmor - string.regexp.apparmor
+	signal (receive, send) set=("exists"),
+	#                           ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor
+	#                                   ^ punctuation.section.parens.end
+	#                                    ^ punctuation.separator.comma.apparmor
 
 	deny unix,
 	# <- constant.language.rule-qualifier.apparmor
