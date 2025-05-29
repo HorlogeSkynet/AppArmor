@@ -279,6 +279,11 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#                                                 ^ string.regexp.apparmor
 	#                                                    ^ keyword.operator.quantifier.regexp.apparmor
 	#                                                     ^ punctuation.separator.comma.apparmor - string.regexp.apparmor
+	signal receive set=term peer=smbd,
+	#                  ^ constant.language.signal.apparmor
+	#                       ^ entity.name.tag.signal-peer.apparmor
+	#                            ^ string.regexp.apparmor
+	#                                ^ punctuation.separator.comma.apparmor
 	signal (receive, send) set=("exists"),
 	#                           ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor
 	#                                   ^ punctuation.section.parens.end

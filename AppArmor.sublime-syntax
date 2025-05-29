@@ -808,6 +808,10 @@ contexts:
             1: entity.name.tag.signal-set.apparmor
             2: keyword.operator.assignment.apparmor
           push:
+            - match: ({{signals}})
+              scope: constant.language.signal.apparmor
+              pop: true
+
             - match: (\()
               scope: punctuation.section.parens.begin
               set:
