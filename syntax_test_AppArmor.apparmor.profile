@@ -291,6 +291,9 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#                           ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor
 	#                                   ^ punctuation.section.parens.end
 	#                                    ^ punctuation.separator.comma.apparmor
+	signal peer=/usr/bin/man//&man_groff,
+	#                         ^ keyword.operator.bitwise.stacking.apparmor
+	#                          ^ entity.name.profile.apparmor
 
 	deny unix,
 	# <- constant.language.rule-qualifier.apparmor
@@ -371,12 +374,13 @@ profile firefox @{exec_path} xattrs=(
 	#                       ^^ keyword.operator.arrow.apparmor
 	#                          ^ entity.name.profile.apparmor
 	#                                 ^ punctuation.separator.comma.apparmor
-	owner file /bin/** px -> profile,
+	owner file /bin/** px -> &profile,
 	#     ^ entity.other.attribute-name.file.apparmor
 	#          ^ string.regexp.apparmor
 	#                  ^ constant.language.file-access-modes.apparmor
-	#                        ^ entity.name.profile.apparmor
-	#                               ^ punctuation.separator.comma.apparmor
+	#                        ^ keyword.operator.bitwise.stacking.apparmor
+	#                         ^ entity.name.profile.apparmor
+	#                                ^ punctuation.separator.comma.apparmor
 	owner @{HOME}/.config/#[0-9]* rw,
 	#                     ^^^^^^^ string.regexp.apparmor
 }

@@ -200,8 +200,10 @@ contexts:
       pop: true
 
   _expect-profile-name:
-    - match: ({{identifier}})
-      scope: entity.name.profile.apparmor
+    - match: (&)?({{identifier}})
+      captures:
+        1: keyword.operator.bitwise.stacking.apparmor
+        2: entity.name.profile.apparmor
       pop: true
 
     # Anonymous profile may miss a name, bail out on first character not matching `identifier`.
