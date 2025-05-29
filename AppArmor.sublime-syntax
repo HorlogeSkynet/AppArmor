@@ -292,6 +292,10 @@ contexts:
     - match: ([\?\*\^\[\]\{\}])
       scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
 
+    - match: (//)
+      scope: keyword.operator.concatenation.apparmor
+      push: _expect-profile-name
+
     # Any other non-whitespace character is considered to be part of the "string".
     - match: ([^\s\x00])
       scope: string.regexp.apparmor

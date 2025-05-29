@@ -241,6 +241,9 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#             ^ punctuation.separator.comma.apparmor
 	#                              ^ string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
 	#                                               ^ punctuation.separator.comma.apparmor
+	ptrace peer=/usr/lib/lightdm/lightdm-guest-session//chromium,
+	#                                                 ^^ keyword.operator.concatenation.apparmor
+	#                                                   ^ entity.name.profile.apparmor
 
 	set rlimit nice <= -20,
 	# <- entity.other.attribute-name.rlimit.apparmor
