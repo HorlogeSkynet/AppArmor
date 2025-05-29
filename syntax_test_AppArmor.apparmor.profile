@@ -313,7 +313,7 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#                                                         ^ punctuation.separator.comma.apparmor
 	#                                                          ^ entity.name.tag.unix-peer-cond.apparmor
 	#                                                              ^ keyword.operator.assignment.apparmor
-	#                                                               ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor 
+	#                                                               ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor
 	#                                                                      ^ punctuation.separator.comma.apparmor
 
 	include if exists <local/usr.bin.program>
