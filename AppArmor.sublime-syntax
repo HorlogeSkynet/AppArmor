@@ -129,6 +129,7 @@ contexts:
   main:
     - include: preamble
     - include: profile
+    - include: rules
 
   prototype:
     - include: comments

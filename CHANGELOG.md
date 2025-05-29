@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Context-less rules (e.g. required for abstraction files)
 - Absolute ABI statements (`abi "/etc/apparmor.d/abi/...",`)
 ### Fixed
 - Profile/Hat names containing `-` separator
