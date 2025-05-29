@@ -134,6 +134,13 @@ contexts:
   prototype:
     - include: comments
 
+  prototype_for_strings:
+    - match: (\\.)
+      scope: constant.character.escape.apparmor
+
+    # Don't forget to consume `line-continuation`.
+    - include: line-continuation
+
   comments:
     # The negative look-ahead is required while we support deprecated "pound-include" statement.
     # See `includes`.
@@ -201,13 +208,10 @@ contexts:
     - include: bail-out-on-non-whitespace
 
   quoted-string:
-    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
     - match: (")
       scope: punctuation.definition.string.begin.apparmor
       with_prototype:
-        - match: (\\.)
-          scope: constant.character.escape.apparmor
-        - include: line-continuation
+        - include: prototype_for_strings
       push:
         - meta_include_prototype: false
         - meta_scope: string.quoted.double.apparmor meta.string.apparmor
@@ -216,13 +220,10 @@ contexts:
           scope: punctuation.definition.string.end.apparmor
           pop: true
   _expect-quoted-string:
-    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
     - match: (")
       scope: punctuation.definition.string.begin.apparmor
       with_prototype:
-        - match: (\\.)
-          scope: constant.character.escape.apparmor
-        - include: line-continuation
+        - include: prototype_for_strings
       set:
         - meta_include_prototype: false
         - meta_scope: string.quoted.double.apparmor meta.string.apparmor
@@ -292,13 +293,10 @@ contexts:
       scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
 
     # Any other non-whitespace character is considered to be part of the "string".
-    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
     - match: ([^\s\x00])
       scope: string.regexp.apparmor
       with_prototype:
-        - match: (\\.)
-          scope: constant.character.escape.apparmor
-        - include: line-continuation
+        - include: prototype_for_strings
 
         # Explicitly match '#' to supersede `comments` prototype.
         - match: (#)
@@ -308,13 +306,10 @@ contexts:
         - include: force-pop
 
   magic-path:
-    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
     - match: (<)
       scope: punctuation.definition.string.begin.apparmor
       with_prototype:
-        - match: (\\.)
-          scope: constant.character.escape.apparmor
-        - include: line-continuation
+        - include: prototype_for_strings
       push:
         - meta_include_prototype: false
         - meta_scope: string.quoted.other.lt-gt.apparmor meta.string.apparmor
