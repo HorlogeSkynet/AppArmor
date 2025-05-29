@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profile/Hat names containing `-` separator
 - Permissive `mount` and `network` directives
 - Unmatched anonymous profiles exec paths
+- Unmatched end parenthesis in `dbus` peer name condition
 
 ## [0.1.1] - 2022-10-27
 ### Changed

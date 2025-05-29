@@ -148,6 +148,15 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 		#                                                            ^ punctuation.section.parens.end
 		#                                                             ^ punctuation.section.parens.end
 		#                                                              ^ punctuation.separator.comma.apparmor
+	dbus send
+		bus=system
+		path="/org/freedesktop/systemd1"
+		interface="org.freedesktop.systemd1.Manager"
+		member="{GetDynamicUsers,LookupDynamicUserByName,LookupDynamicUserByUID}"
+		peer=(name="org.freedesktop.systemd1"),
+		#                                   ^ string.quoted.double.apparmor punctuation.definition.string.end.apparmor
+		#                                    ^ punctuation.section.parens.end
+		#                                     ^ punctuation.separator.comma.apparmor
 
 	link subset @{HOME}/*.fonts/.uuid.LCK -> @{HOME}/.fonts/.uuid.TMP-*,
 	# <- entity.other.attribute-name.link.apparmor

@@ -609,6 +609,7 @@ contexts:
             - include: aare
 
         - include: bail-out-on-comma
+        - include: bail-out-on-parens-end
         - include: bail-out-on-whitespace
         - include: aare
 
