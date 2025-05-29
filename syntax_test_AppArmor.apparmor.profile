@@ -120,6 +120,9 @@ profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 	#                         ^ keyword.operator.assignment.apparmor
 	#                          ^ constant.language.dbus-bus.apparmor
 	#                                 ^ punctuation.separator.comma.apparmor
+	dbus bus="session",
+	#        ^ string.quoted.double.apparmor punctuation.definition.string.begin.apparmor
+	#                 ^ punctuation.separator.comma.apparmor
 	dbus receive bus=@{exec_path}/{,foo} path=/com/example/path interface=com.example.Interface,
 	#    ^ constant.language.dbus-access.apparmor
 	#            ^ entity.name.tag.dbus-bus.apparmor

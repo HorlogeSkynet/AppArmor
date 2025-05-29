@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Double-quoted `signal` set signals
+- `dbus` "accessibility" and "fcitx" bus names
 - Context-less rules (e.g. required for abstraction files)
 - Absolute ABI statements (`abi "/etc/apparmor.d/abi/...",`)
 ### Fixed

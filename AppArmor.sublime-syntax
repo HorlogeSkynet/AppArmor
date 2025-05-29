@@ -583,11 +583,13 @@ contexts:
             1: entity.name.tag.dbus-bus.apparmor
             2: keyword.operator.assignment.apparmor
           push:
-            - match: \b(system|session)\b
+            - match: \b(system|session|accessibility|fcitx)\b
               scope: constant.language.dbus-bus.apparmor
               pop: true
 
+            - include: bail-out-on-comma
             - include: bail-out-on-whitespace
+            - include: quoted-string
             - include: aare
 
         - include: _expect-comma
