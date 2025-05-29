@@ -292,8 +292,20 @@ contexts:
       scope: string.regexp.apparmor keyword.operator.quantifier.regexp.apparmor
 
     # Any other non-whitespace character is considered to be part of the "string".
+    # `prototype` won't be propagated, but `line-continuation` has to be consumed.
     - match: ([^\s\x00])
       scope: string.regexp.apparmor
+      with_prototype:
+        - match: (\\.)
+          scope: constant.character.escape.apparmor
+        - include: line-continuation
+
+        # Explicitly match '#' to supersede `comments` prototype.
+        - match: (#)
+          scope: string.regexp.apparmor
+      push:
+        - meta_include_prototype: false
+        - include: force-pop
 
   magic-path:
     # `prototype` won't be propagated, but `line-continuation` has to be consumed.

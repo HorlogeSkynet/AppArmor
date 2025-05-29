@@ -374,6 +374,8 @@ profile firefox @{exec_path} xattrs=(
 	#                  ^ constant.language.file-access-modes.apparmor
 	#                        ^ entity.name.profile.apparmor
 	#                               ^ punctuation.separator.comma.apparmor
+	owner @{HOME}/.config/#[0-9]* rw,
+	#                     ^^^^^^^ string.regexp.apparmor
 }
 
 /usr/bin/foo {
