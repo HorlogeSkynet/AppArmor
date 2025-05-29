@@ -602,7 +602,6 @@ contexts:
 
             - include: bail-out-on-comma
             - include: bail-out-on-whitespace
-            - include: quoted-string
             - include: aare
 
         - include: _expect-comma
