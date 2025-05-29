@@ -91,7 +91,7 @@ variables:
   network_domains: |-
     (?x)
     \b(?:
-      inet6?|unix|netlink|packet|
+      inet6?|unix|netlink|packet|raw|
       alg|appletalk|ash|atm[ps]vc|ax25|bluetooth|bridge|caif|can|econet|ib|ieee802154|ipx|irda|
       isdn|iucv|key|llc|mpls|netbeui|netrom|nfc|phonet|pppox|rds|rose|rxrpc|security|sna|tipc|
       vsock|wanpipe|x25
