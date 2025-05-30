@@ -32,7 +32,7 @@ include <tunables/home>
 
 @{exec_path} = /such/a/path /another[0-9]_*/{,one}
 # <- punctuation.definition.variable.apparmor
- # <- punctuation.section.interpolation.begin.apparmor
+#^ punctuation.section.interpolation.begin.apparmor
 # ^ variable.other.readwrite.apparmor
 #          ^ punctuation.section.interpolation.end.apparmor
 #            ^ keyword.operator.assignment.apparmor
