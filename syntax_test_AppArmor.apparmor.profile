@@ -9,7 +9,13 @@ abi <abi/3.0>,
 #   ^ punctuation.definition.string.begin.apparmor
 #    ^^^^^^^ string.quoted.other.lt-gt.apparmor
 #           ^ punctuation.definition.string.end.apparmor
-#            ^punctuation.separator.comma.apparmor
+#            ^ punctuation.separator.comma.apparmor
+
+abi "/etc/apparmor.d/abi/kernel-5.4-vanilla",
+#   ^ punctuation.definition.string.begin.apparmor
+#   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ string.quoted.double.apparmor meta.string.apparmor
+#                                          ^ punctuation.definition.string.end.apparmor
+#                                           ^ punctuation.separator.comma.apparmor
 
 include <tunables/global>
 # <- keyword.control.import.include.apparmor
@@ -19,8 +25,8 @@ include <tunables/home>
 
 #include if exists "incredible s\tring"
 # <- invalid.deprecated.pound-include.apparmor
-#                  ^^^^^^^^^^^^^^^^^^^^ string.quoted.double.apparmor meta.string.apparmor
 #                  ^ punctuation.definition.string.begin.apparmor
+#                  ^^^^^^^^^^^^^^^^^^^^ string.quoted.double.apparmor meta.string.apparmor
 #                               ^^ constant.character.escape.apparmor
 #                                     ^ punctuation.definition.string.end.apparmor
 

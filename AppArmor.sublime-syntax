@@ -14,7 +14,7 @@ file_extensions:
 
 # AppArmor profiles do not have a proper shebang.
 # We thus try to match as first line :
-#   * an `abi` statement ;
+#   * `abi` statements ;
 #   * `include` statements ;
 #   * `#include` statements (deprecated) ;
 #   * a shebang with `apparmor_parser` ;
@@ -22,7 +22,8 @@ file_extensions:
 first_line_match: |-
   (?x)
   (?:^
-    (?:abi\s+<abi\/[[:digit:]]+\.[[:digit:]]+>\s*,)|
+    (?:abi\s+<[[:alnum:]_\/]+>\s*,)|
+    (?:abi\s+"[[:alnum:]_\/]+"\s*,)|
     (?:\#?include\s+<[[:alnum:]_\/]+>)|
     (?:\#?include\s+"[[:alnum:]_\/]+")|
     (?:\#![ \t]*(?:\/usr(?:\/local)?)?\/s?bin\/apparmor_parser\b)|
@@ -350,6 +351,7 @@ contexts:
       push:
         - meta_scope: meta.preprocessor.abi.apparmor
 
+        - include: quoted-string
         - include: magic-path
         - include: _expect-comma
 
