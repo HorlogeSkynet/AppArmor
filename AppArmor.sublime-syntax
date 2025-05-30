@@ -35,8 +35,8 @@ hidden: false
 
 
 variables:
-  identifier: (?:[[:alpha:]_][[:alnum:]_]*)
-  capture_var_exp: (@)({)({{identifier}})(})
+  identifier: (?:[[:alpha:]-_][[:alnum:]-_]*)
+  capture_var_exp: (@)({)([[:alpha:]_][[:alnum:]_]*)(})
 
   profile_flags: |-
     (?x)
@@ -192,7 +192,7 @@ contexts:
       pop: true
 
   _expect-profile-name:
-    - match: (?:{{identifier}})
+    - match: ({{identifier}})
       scope: entity.name.profile.apparmor
       pop: true
 

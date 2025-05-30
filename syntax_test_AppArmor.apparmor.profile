@@ -67,7 +67,7 @@ alias /home/ -> /mnt/users/,
 #               ^ string.unquoted.absolute-path.apparmor
 #                          ^ punctuation.separator.comma.apparmor
 
-profile profile_N4m3 @{exec_path} flags=(attach_disconnected) {
+profile prof_N4m3-ng @{exec_path} flags=(attach_disconnected) {
 # <- storage.type.profile.apparmor keyword.declaration.profile.apparmor
 #       ^^^^^^^^^^^^ entity.name.profile.apparmor
 #                    ^ punctuation.definition.variable.apparmor
@@ -403,7 +403,7 @@ profile firefox @{exec_path} xattrs=(
 	}
 	# <- punctuation.section.block.end.profile.apparmor
 
-	hat foo2 {}
+	hat foo- {}
 	# <- storage.type.hat.apparmor keyword.declaration.hat.apparmor
 	#   ^ entity.name.profile.apparmor
 	#        ^ punctuation.section.block.begin.profile.apparmor
