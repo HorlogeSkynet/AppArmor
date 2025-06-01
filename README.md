@@ -11,7 +11,6 @@ This project aims to provide a "basic" profile syntax definition for Sublime Tex
 
 ## Installation
 
-
 ### With Package Control
 
 1. Open your command palette and type in : `Package Control: Install Package`
@@ -19,7 +18,6 @@ This project aims to provide a "basic" profile syntax definition for Sublime Tex
 3. Press `Enter` and you're done !
 
 Package Control dedicated page [here](https://packagecontrol.io/packages/AppArmor).
-
 
 ### Manually
 
